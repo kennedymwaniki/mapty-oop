@@ -11,6 +11,8 @@ const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
 
+let map, mapEvent;
+
 if (navigator.geolocation)
   navigator.geolocation.getCurrentPosition(
     function (position) {
@@ -21,33 +23,18 @@ if (navigator.geolocation)
 
       const coords = [latitude, longitude];
 
-      const map = L.map('map').setView(coords, 13); // 13 is the nimber of tiles
+      map = L.map('map').setView(coords, 13); // 13 is the nimber of tiles
 
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
-      // adding an event handler on the map so that when it is clicked a popup a ppears
-      map.on('click', function (mapEvent) {
+      // adding an event handler on the map so that when it is clicked a popup a ppears(handling clicks on map)
+      map.on('click', function (mapE) {
+        mapEvent = mapE;
         form.classList.remove('hidden');
         inputDistance.focus();
-        // console.log(mapEvent);
-        // const { lat, lng } = mapEvent.latlng; // destructuring to get current location on the map
-        // L.marker([lat, lng]) // latitude and longitude from the map
-        // .addTo(map)
-        // .bindPopup(
-        //sizing the popup
-        // L.popup({
-        // maxWidth: 200,
-        // minWidth: 100,
-        // autoClose: false,
-        // closeOnClick: false, // popUp doesnt close whenver clicked
-        // className: 'running-popup',
-        // })
-        // )
-        // .setPopupContent('WorkOut') // inrormation displayed when popup appears
-        // .openPopup();
       });
     },
     function () {
@@ -55,7 +42,8 @@ if (navigator.geolocation)
     }
   );
 
-form.addEventListener('submit', function () {
+form.addEventListener('submit', function (e) {
+  e.preventDefault();
   //display marker
   const { lat, lng } = mapEvent.latlng; // destructuring to get current location on the map
   L.marker([lat, lng]) // latitude and longitude from the map
