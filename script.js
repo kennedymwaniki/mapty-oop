@@ -10,7 +10,7 @@ class Workout {
     // this.id = ...
     this.coords = coords; // [lat, lng]
     this.distance = distance; // in km
-    this.duration = duration; // in min
+    this.duration = duration; // in mins
   }
 
   _setDescription() {
