@@ -12,13 +12,18 @@ const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
 // making map and mapEven global variables so that they can be accessed nywhere
 
-let map, mapEvent;
+// let map, mapEvent;
 
 class App {
   #map;
   #mapEvent;
   constructor() {
     this._getPosition();
+
+    form.addEventListener('submit', this._newWorkout.bind(this)); // we use bind because (this) in an event handler points to the element to which it is attatched in our case it is the form element, and we need it to point back to the app class
+
+    //changing from cadence to elevtion gain in the form switching from running to cycling
+    inputType.addEventListener('change', this._toggleElevtionField.bind(this));
   }
 
   _getPosition() {
@@ -47,45 +52,40 @@ class App {
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.#map);
     // adding an event handler on the map so that when it is clicked a popup a ppears(handling clicks on map)
-    this.#map.on('click', function (mapE) {
-      this.#mapEvent = mapE;
-      form.classList.remove('hidden');
-      inputDistance.focus();
-    });
-  }
+    this.#map.on('click', this._showForm.bind(this)); // the this keyword points to the map and hence we bind so that it can point back to the app object
+  } // also the this keyword is the app object
 
-  _showForm() {}
-  _toggleElevtionField() {}
-  _newWorkout() {}
+  _showForm(mapE) {
+    this.#mapEvent = mapE;
+    form.classList.remove('hidden');
+    inputDistance.focus();
+  }
+  _toggleElevtionField() {
+    inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
+    inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
+  }
+  _newWorkout(e) {
+    e.preventDefault();
+    //clearing inputs
+    inputCadence.value = inputDistance.value = inputDuration.value = ' ';
+    //display marker
+    const { lat, lng } = this.#mapEvent.latlng; // destructuring to get current location on the map
+    L.marker([lat, lng]) // latitude and longitude from the map
+      .addTo(this.#map)
+      .bindPopup(
+        //sizing the popup
+        L.popup({
+          maxWidth: 200,
+          minWidth: 100,
+          autoClose: false,
+          closeOnClick: false, // popUp doesnt close whenver clicked
+          className: 'running-popup',
+        })
+      )
+      .setPopupContent('WorkOut') // inrormation displayed when popup appears
+      .openPopup();
+  }
 }
 
 const app = new App();
 app._getPosition(); // getting user location
-
-form.addEventListener('submit', function (e) {
-  e.preventDefault();
-  //clearing inputs
-  inputCadence.value = inputDistance.value = inputDuration.value = ' ';
-  //display marker
-  const { lat, lng } = mapEvent.latlng; // destructuring to get current location on the map
-  L.marker([lat, lng]) // latitude and longitude from the map
-    .addTo(map)
-    .bindPopup(
-      //sizing the popup
-      L.popup({
-        maxWidth: 200,
-        minWidth: 100,
-        autoClose: false,
-        closeOnClick: false, // popUp doesnt close whenver clicked
-        className: 'running-popup',
-      })
-    )
-    .setPopupContent('WorkOut') // inrormation displayed when popup appears
-    .openPopup();
-});
-
-//changing from cadence to elevtion gain in the form switching from running to cycling
-inputType.addEventListener('change', function () {
-  inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
-  inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
-});
