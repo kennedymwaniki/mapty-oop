@@ -14,37 +14,58 @@ const inputElevation = document.querySelector('.form__input--elevation');
 
 let map, mapEvent;
 
-if (navigator.geolocation)
-  navigator.geolocation.getCurrentPosition(
-    function (position) {
-      const { latitude } = position.coords;
-      const { longitude } = position.coords;
-      console.log(longitude, latitude);
-      console.log(`https://www.google.com/maps/@${latitude},${longitude}`);
+class App {
+  #map;
+  #mapEvent;
+  constructor() {
+    this._getPosition();
+  }
 
-      const coords = [latitude, longitude];
+  _getPosition() {
+    if (navigator.geolocation)
+      navigator.geolocation.getCurrentPosition(
+        this._loadMap.bind(this),
+        function () {
+          alert("we could'nt get your location");
+        }
+      );
+  }
 
-      map = L.map('map').setView(coords, 13); // 13 is the nimber of tiles
+  _loadMap(position) {
+    const { latitude } = position.coords;
+    const { longitude } = position.coords;
+    console.log(longitude, latitude);
 
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }).addTo(map);
+    console.log(`https://www.google.com/maps/@${latitude},${longitude}`);
 
-      // adding an event handler on the map so that when it is clicked a popup a ppears(handling clicks on map)
-      map.on('click', function (mapE) {
-        mapEvent = mapE;
-        form.classList.remove('hidden');
-        inputDistance.focus();
-      });
-    },
-    function () {
-      alert("we could'nt get your location");
-    }
-  );
+    const coords = [latitude, longitude];
+
+    console.log(this);
+    this.#map = L.map('map').setView(coords, 13); // 13 is the nimber of tiles $ this.#map is no longer a global variable but an object
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(this.#map);
+    // adding an event handler on the map so that when it is clicked a popup a ppears(handling clicks on map)
+    this.#map.on('click', function (mapE) {
+      this.#mapEvent = mapE;
+      form.classList.remove('hidden');
+      inputDistance.focus();
+    });
+  }
+
+  _showForm() {}
+  _toggleElevtionField() {}
+  _newWorkout() {}
+}
+
+const app = new App();
+app._getPosition(); // getting user location
 
 form.addEventListener('submit', function (e) {
   e.preventDefault();
+  //clearing inputs
+  inputCadence.value = inputDistance.value = inputDuration.value = ' ';
   //display marker
   const { lat, lng } = mapEvent.latlng; // destructuring to get current location on the map
   L.marker([lat, lng]) // latitude and longitude from the map
@@ -61,4 +82,10 @@ form.addEventListener('submit', function (e) {
     )
     .setPopupContent('WorkOut') // inrormation displayed when popup appears
     .openPopup();
+});
+
+//changing from cadence to elevtion gain in the form switching from running to cycling
+inputType.addEventListener('change', function () {
+  inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
+  inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
 });
